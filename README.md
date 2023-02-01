@@ -1,1 +1,1 @@
-# maven-workflows
+# js-workflows

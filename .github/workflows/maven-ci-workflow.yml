@@ -1,0 +1,61 @@
+# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+
+name: Maven CI Workflow
+
+on:  
+  workflow_call:
+          
+jobs:
+  maven-ci:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    name: Maven CI
+    continue-on-error: false
+    env:
+      SERVER_MAVEN_REPO_USER: ${{ secrets.SERVER_MAVEN_REPO_USER }}
+      SERVER_MAVEN_REPO_PASSWORD: ${{ secrets.SERVER_MAVEN_REPO_PASSWORD }}
+    steps:
+    - name: Checkout build repo
+      uses: actions/checkout@v3
+      
+    - name: Extract owner
+      shell: bash
+      run: echo "##[set-output name=owner;]$(echo ${GITHUB_REPOSITORY%/*})"
+      id: extract_owner
+      
+    - name: Checkout common workflows repo
+      uses: actions/checkout@v3
+      with:
+        repository: ${{ steps.extract_owner.outputs.owner }}/jc-workflows
+        ref: main
+        path: jc-workflows
+        
+    - uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'
+        java-version: '7'
+        cache: 'maven'
+    
+    - name: Set up maven
+      uses: stCarolas/setup-maven@v4.4
+      with:
+          maven-version: 3.6.3
+                
+    - name: Copy settings.xml
+      run: |
+       cp jc-workflows/conf/settings.xml ~/.m2/settings.xml
+        
+    - name: Add hosts to /etc/hosts
+      run: |
+       sudo echo "${{ secrets.JFROG_IP }} ${{ secrets.JFROG_DOMAIN }}" | sudo tee -a /etc/hosts
+      
+    - name: Build with Maven
+      run: |
+       mvn clean install
+                         
+    - name: Publish
+      run: | 
+        mvn deploy
