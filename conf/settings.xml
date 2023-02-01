@@ -55,7 +55,7 @@
     </mirrors>
     <profiles>
         <profile>
-            <id>jc</id>
+            <id>maven</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
@@ -108,7 +108,7 @@
         </profile>
           <activeProfiles>
             <!--make the profile active all the time -->
-            <activeProfile>jc</activeProfile>
+            <activeProfile>maven</activeProfile>
           </activeProfiles>
     </profiles>
 </settings>
